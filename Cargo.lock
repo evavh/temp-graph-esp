@@ -559,9 +559,9 @@ dependencies = [
 
 [[package]]
 name = "esp-idf-svc"
-version = "0.49.0"
+version = "0.49.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ba720352001f2df70e19eca99f9d1a7b7fd1003dd639938540a5fb4a70c2e8e"
+checksum = "ac42f9303792348e3217c570b0f0d8280a381d053bcb730c3018ec6873928513"
 dependencies = [
  "embassy-futures",
  "embedded-hal-async",
@@ -593,6 +593,16 @@ dependencies = [
  "serde",
  "strum 0.24.1",
  "which",
+]
+
+[[package]]
+name = "esp-max31865"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9657513426ac40384f8d16ee6507cf0218d2545cc23e56f403e764ee376548f3"
+dependencies = [
+ "bitflags 2.6.0",
+ "esp-idf-svc",
 ]
 
 [[package]]
@@ -962,6 +972,7 @@ dependencies = [
  "embedded-svc",
  "embuild",
  "esp-idf-svc",
+ "esp-max31865",
  "log",
  "shtcx",
  "toml-cfg",

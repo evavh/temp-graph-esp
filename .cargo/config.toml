@@ -9,7 +9,7 @@ runner = "espflash flash --monitor"
 rustflags = ["--cfg", "espidf_time64", "-C", "default-linker-libraries"]
 
 [unstable]
-build-std          = ["panic_abort", "std"]
+build-std = ["panic_abort", "std"]
 
 [env]
 # Enables the esp-idf-sys "native" build feature (`cargo build --features native`) to build against ESP-IDF (v5.2.2)

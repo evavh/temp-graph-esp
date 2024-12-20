@@ -6,10 +6,18 @@ use embedded_svc::{http::Method, io::Write};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
     hal::{
+        delay::Delay,
         io::EspIOError,
         prelude::*,
+        spi::{config::DriverConfig, SpiDriver},
     },
     http::server::{Configuration, EspHttpServer},
+};
+use esp_max31865::{Max31865, PowerFilter, Wires};
+use std::{
+    sync::{Arc, RwLock},
+    thread,
+    time::Duration,
 };
 
 use wifi::wifi;
@@ -23,6 +31,7 @@ pub struct Config {
     #[default("")]
     wifi_psk: &'static str,
 }
+
 fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
@@ -40,48 +49,45 @@ fn main() -> Result<()> {
         peripherals.modem,
         sysloop,
     )?;
+    let pins = peripherals.pins;
 
-    // Initialize temperature sensor
-    // let sda = peripherals.pins.gpio10;
-    // let scl = peripherals.pins.gpio8;
-    // let i2c = peripherals.i2c0;
-    // let config = I2cConfig::new().baudrate(100.kHz().into());
-    // let i2c = I2cDriver::new(i2c, sda, scl, &config)?;
-    // let temp_sensor_main = Arc::new(Mutex::new(shtc3(i2c)));
-    // let temp_sensor = temp_sensor_main.clone();
-    // temp_sensor
-    //     .lock()
-    //     .unwrap()
-    //     .start_measurement(PowerMode::NormalMode)
-    //     .unwrap();
+    let spi = peripherals.spi2;
+    let sclk = pins.gpio6;
+    let sdo = pins.gpio2;
+    let sdi = pins.gpio7;
+    let config = DriverConfig::new();
+    let driver = SpiDriver::new(spi, sclk, sdo, Some(sdi), &config).unwrap();
+
+    let delay = Delay::new_default();
+    let cs = pins.gpio10;
+    let rtd_nominal = 1000.; // if PT100: 100, if PT1000: 1000
+    let ref_resistance = 431.; // ref resistor on board
+    let mut temp_sensor =
+        Max31865::new(&driver, &delay, cs, rtd_nominal, ref_resistance)
+            .unwrap();
+
+    temp_sensor
+        .set_config(
+            Some(Wires::Three),
+            Some(PowerFilter::FiftyHertz),
+            Some(true),  //??
+            Some(true),  //??
+            Some(false), //??
+        )
+        .unwrap();
+
+    let temp_value = Arc::new(RwLock::new(0.0));
+    let temp_value_clone = temp_value.clone();
 
     // Set the HTTP server
     let mut server = EspHttpServer::new(&Configuration::default())?;
-    // http://<sta ip>/ handler
-    server.fn_handler(
-        "/",
-        Method::Get,
-        |request| -> core::result::Result<(), EspIOError> {
-            let html = index_html();
-            let mut response = request.into_ok_response()?;
-            response.write_all(html.as_bytes())?;
-            Ok(())
-        },
-    )?;
 
     // http://<sta ip>/temperature handler
     server.fn_handler(
-        "/temperature",
+        "/",
         Method::Get,
         move |request| -> core::result::Result<(), EspIOError> {
-            let temp_val = 20.;
-            // let temp_val = temp_sensor
-            //     .lock()
-            //     .unwrap()
-            //     .get_measurement_result()
-            //     .unwrap()
-            //     .temperature
-            //     .as_degrees_celsius();
+            let temp_val = *temp_value_clone.read().unwrap();
             let html = temperature(temp_val);
             let mut response = request.into_ok_response()?;
             response.write_all(html.as_bytes())?;
@@ -91,14 +97,10 @@ fn main() -> Result<()> {
 
     println!("Server awaiting connection");
 
-    // Prevent program from exiting
     loop {
-        // temp_sensor_main
-        //     .lock()
-        //     .unwrap()
-        //     .start_measurement(PowerMode::NormalMode)
-        //     .unwrap();
-        // sleep(Duration::from_millis(1000));
+        *temp_value.write().unwrap() =
+            temp_sensor.read_temperature_celsius().unwrap();
+        thread::sleep(Duration::from_secs(1));
     }
 }
 
@@ -120,10 +122,6 @@ fn templated(content: impl AsRef<str>) -> String {
     )
 }
 
-fn index_html() -> String {
-    templated("Hello from ESP32-C3!")
-}
-
 fn temperature(val: f32) -> String {
-    templated(format!("Chip temperature: {:.2}°C", val))
+    templated(format!("Temperature: {:.2}°C", val))
 }
