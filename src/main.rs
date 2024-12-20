@@ -76,6 +76,8 @@ fn main() -> Result<()> {
         )
         .unwrap();
 
+    let mut temp_sensor = MockSensor::new();
+
     let temp_value = Arc::new(RwLock::new(0.0));
     let temp_value_clone = temp_value.clone();
 
@@ -124,4 +126,18 @@ fn templated(content: impl AsRef<str>) -> String {
 
 fn temperature(val: f32) -> String {
     templated(format!("Temperature: {:.2}°C", val))
+}
+
+struct MockSensor {
+    value: f32,
+}
+
+impl MockSensor {
+    fn new() -> Self {
+        Self { value: 0.0 }
+    }
+    fn read_temperature_celsius(&mut self) -> Result<f32, ()> {
+        self.value += 1.0;
+        Ok(self.value)
+    }
 }
