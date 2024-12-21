@@ -90,7 +90,7 @@ fn main() -> Result<()> {
         Method::Get,
         move |request| -> core::result::Result<(), EspIOError> {
             let temp_val = *temp_value_clone.read().unwrap();
-            let html = temperature(temp_val);
+            let html = js();
             let mut response = request.into_ok_response()?;
             response.write_all(html.as_bytes())?;
             Ok(())
@@ -121,6 +121,33 @@ fn templated(content: impl AsRef<str>) -> String {
 </html>
 "#,
         content.as_ref()
+    )
+}
+
+fn js() -> String {
+    String::from(
+        r#"
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>esp-rs web server</title>
+        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    </head>
+    <body>
+    <div id="tester" style="width:600px;height:250px;"></div>
+    <script>
+
+	TESTER = document.getElementById('tester');
+	Plotly.newPlot( TESTER, [{
+	x: [1, 2, 3, 4, 5],
+	y: [1, 2, 4, 8, 16] }], {
+	margin: { t: 0 } } );
+
+</script>
+    </body>
+</html>
+"#,
     )
 }
 
