@@ -15,11 +15,11 @@ use esp_idf_svc::{
     http::server::{Configuration, EspHttpServer},
 };
 use esp_max31865::{Max31865, PowerFilter, Wires};
-use std::{net::TcpListener, sync::mpsc, thread, time::Duration};
-use tungstenite::Message;
+use std::{sync::mpsc, thread, time::Duration};
 
 use wifi::wifi;
 
+mod websocket_server;
 mod wifi;
 
 const WEBPAGE: &'static str = const_format::str_replace!(
@@ -69,21 +69,10 @@ fn main() -> Result<()> {
 
     println!("Http server awaiting connection");
 
-    println!("Starting tcplistener");
-    let server = TcpListener::bind("0.0.0.0:3012").unwrap();
-    println!("Getting next incoming conn");
-    let stream = server.incoming().next().unwrap();
-    println!("Starting websocket");
+    let addr = "0.0.0.0:3012";
+    websocket_server::send_temp_to_client(addr, temp_receiver);
 
-    let mut websocket = tungstenite::accept(stream.unwrap()).unwrap();
-
-    loop {
-        let temp = temp_receiver.recv().unwrap();
-        websocket
-            .send(Message::Binary(temp.to_ne_bytes().to_vec().into()))
-            .unwrap();
-        thread::sleep(Duration::from_secs(1));
-    }
+    unreachable!()
 }
 
 fn update_temp(

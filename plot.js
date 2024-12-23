@@ -1,4 +1,4 @@
-websocket = new WebSocket("ws://192.168.1.16:3012");
+websocket = new WebSocket("ws://192.168.1.15:3012");
 websocket.onmessage = (event) => {
   console.log(event.data);
 };
