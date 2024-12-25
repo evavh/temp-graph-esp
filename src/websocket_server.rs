@@ -14,6 +14,7 @@ use embedded_websocket::{
     framer::{Framer, FramerError},
     WebSocketContext, WebSocketSendMessageType, WebSocketServer,
 };
+use jiff::Timestamp;
 use std::str::Utf8Error;
 use std::{
     io::{Read, Write},
@@ -95,12 +96,16 @@ pub(crate) fn send_temp_to_client(
 
     loop {
         let temp = temp_receiver.recv().unwrap();
-        framer.write(
-            &mut stream,
-            WebSocketSendMessageType::Binary,
-            true,
-            &temp.to_ne_bytes(),
-        ).unwrap();
+        let timestamp = Timestamp::now().as_second();
+        dbg!(timestamp);
+
+        let mut data = timestamp.to_be_bytes().to_vec();
+        dbg!(&data);
+        data.append(&mut temp.to_be_bytes().to_vec());
+
+        framer
+            .write(&mut stream, WebSocketSendMessageType::Binary, true, &data)
+            .unwrap();
         thread::sleep(Duration::from_secs(1));
     }
 }

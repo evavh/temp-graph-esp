@@ -13,6 +13,9 @@ use esp_idf_svc::{
         spi::{config::DriverConfig, SpiDriver, SPI2},
     },
     http::server::{Configuration, EspHttpServer},
+    log::EspLogger,
+    sntp::{EspSntp, SyncStatus},
+    sys,
 };
 use esp_max31865::{Max31865, PowerFilter, Wires};
 use std::{sync::mpsc, thread, time::Duration};
@@ -37,8 +40,12 @@ pub struct Config {
 }
 
 fn main() -> Result<()> {
-    esp_idf_svc::sys::link_patches();
-    esp_idf_svc::log::EspLogger::initialize_default();
+    sys::link_patches();
+    EspLogger::initialize_default();
+    unsafe {
+        sys::nvs_flash_init();
+    }
+
     let peripherals = Peripherals::take().unwrap();
     let sysloop = EspSystemEventLoop::take()?;
     let _wifi = wifi(
@@ -48,6 +55,11 @@ fn main() -> Result<()> {
         peripherals.modem,
         sysloop,
     )?;
+
+    let ntp = EspSntp::new_default().unwrap();
+    println!("Synchronising with NTP server");
+    while ntp.get_sync_status() != SyncStatus::Completed {}
+    println!("Time sync completed");
 
     let pins = peripherals.pins;
     let spi = peripherals.spi2;

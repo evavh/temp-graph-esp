@@ -24,6 +24,7 @@ embedded-websocket = { version = "0.9.4" }
 esp-idf-svc = "0.49.0"
 esp-max31865 = "0.1.0"
 httparse = { version = "1.9.5", default-features = false }
+jiff = "0.1.15"
 # esp-max31865 = { path = "../clones/esp-max31865" }
 log = "=0.4.22"
 shtcx = "=1.0.0"
