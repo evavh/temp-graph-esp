@@ -1,8 +1,9 @@
 PLOT = document.getElementById("plot");
 Plotly.newPlot(PLOT, [{ x: [], y: [] }], {
   title: "Oliebol",
-  xaxis: { title: "Time" },
-});
+  xaxis: { title: "Tijd" },
+  yaxis: { title: "Temperatuur [°C]" },
+}, { responsive: true });
 
 websocket = new WebSocket("ws://192.168.1.15:3012");
 websocket.onmessage = (event) => {
@@ -27,5 +28,5 @@ function formatTime(date) {
   hour = ("0" + date.getHours()).slice(-2);
   minute = ("0" + date.getMinutes()).slice(-2);
   second = ("0" + date.getSeconds()).slice(-2);
-  return minute + ":" + second;
+  return hour + ":" + minute + ":" + second;
 }
