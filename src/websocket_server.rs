@@ -97,10 +97,8 @@ pub(crate) fn send_temp_to_client(
     loop {
         let temp = temp_receiver.recv().unwrap();
         let timestamp = Timestamp::now().as_second();
-        dbg!(timestamp);
 
         let mut data = timestamp.to_be_bytes().to_vec();
-        dbg!(&data);
         data.append(&mut temp.to_be_bytes().to_vec());
 
         framer

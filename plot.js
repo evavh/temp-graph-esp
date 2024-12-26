@@ -1,24 +1,31 @@
 PLOT = document.getElementById("plot");
-Plotly.newPlot(PLOT, [{ x: [], y: [] }], { margin: { t: 0 } });
+Plotly.newPlot(PLOT, [{ x: [], y: [] }], {
+  title: "Oliebol",
+  xaxis: { title: "Time" },
+});
 
 websocket = new WebSocket("ws://192.168.1.15:3012");
 websocket.onmessage = (event) => {
   event.data.bytes().then((bytes) => {
     timestamp = toInt(bytes.slice(0, 8));
     temp = toInt(bytes.slice(8, 10)) / 10;
-    console.log(bytes);
-    console.log(bytes.slice(8, 10));
-    console.log(timestamp);
-    console.log(temp);
+    time = formatTime(new Date(timestamp * 1000));
 
-    Plotly.extendTraces(PLOT, { x: [[timestamp]], y: [[temp]] }, [0]);
+    Plotly.extendTraces(PLOT, { x: [[time]], y: [[temp]] }, [0], 120);
   });
 };
 
 function toInt(byteArray) {
   result = 0;
   for (let i = 0; i < byteArray.length; i++) {
-    result += byteArray[i] * Math.pow(256, i - 1);
+    result += byteArray[i] * Math.pow(256, byteArray.length - i - 1);
   }
   return result;
+}
+
+function formatTime(date) {
+  hour = ("0" + date.getHours()).slice(-2);
+  minute = ("0" + date.getMinutes()).slice(-2);
+  second = ("0" + date.getSeconds()).slice(-2);
+  return minute + ":" + second;
 }
