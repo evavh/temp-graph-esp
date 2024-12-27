@@ -66,9 +66,7 @@ fn main() -> Result<()> {
     let (temp_sender, temp_receiver) = mpsc::channel();
     thread::spawn(|| update_temp(pins, spi, temp_sender).unwrap());
 
-    // Set the HTTP server
     let mut http_server = EspHttpServer::new(&Configuration::default())?;
-    // http://<sta ip>/temperature handler
     http_server.fn_handler(
         "/",
         Method::Get,

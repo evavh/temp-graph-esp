@@ -5,6 +5,7 @@ Plotly.newPlot(PLOT, [{ x: [], y: [] }], {
   yaxis: { title: "Temperatuur [°C]" },
 }, { responsive: true });
 
+// IP for the ESP, with same port as Rust code websocket
 websocket = new WebSocket("ws://192.168.1.15:3012");
 websocket.onmessage = (event) => {
   event.data.bytes().then((bytes) => {
