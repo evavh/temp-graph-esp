@@ -116,8 +116,6 @@ fn update_temp(
         )
         .unwrap();
 
-    let mut temp_sensor = MockSensor::new();
-
     loop {
         let temp = temp_sensor.read_temperature_celsius().unwrap();
         let temp = (temp * 10.).round() as u16;
@@ -126,10 +124,12 @@ fn update_temp(
     }
 }
 
+#[allow(unused)]
 struct MockSensor {
     value: f32,
 }
 
+#[allow(unused)]
 impl MockSensor {
     fn new() -> Self {
         Self { value: 0.0 }
