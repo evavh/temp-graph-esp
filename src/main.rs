@@ -17,7 +17,7 @@ use esp_idf_svc::{
     sntp::{EspSntp, SyncStatus},
     sys,
 };
-use esp_max31865::{Max31865, PowerFilter, Wires};
+use esp_max31865::{FaultCycle, Max31865, PowerFilter, Wires};
 use std::{sync::mpsc, thread, time::Duration};
 
 use wifi::wifi;
@@ -115,7 +115,27 @@ fn update_temp(
         .unwrap();
 
     loop {
+        let faults: Vec<_> = temp_sensor
+            .get_faults(FaultCycle::Auto)
+            .unwrap()
+            .descriptions()
+            .collect();
+        dbg!(&faults);
+        let res = temp_sensor.read_rtd().unwrap();
+        let faults: Vec<_> = temp_sensor
+            .get_faults(FaultCycle::Auto)
+            .unwrap()
+            .descriptions()
+            .collect();
+        dbg!(&faults);
         let temp = temp_sensor.read_temperature_celsius().unwrap();
+        let faults: Vec<_> = temp_sensor
+            .get_faults(FaultCycle::Auto)
+            .unwrap()
+            .descriptions()
+            .collect();
+        dbg!(&faults);
+        dbg!(res, temp);
         let temp = (temp * 10.).round() as u16;
         temp_sender.send(temp).unwrap();
         thread::sleep(Duration::from_secs(1));

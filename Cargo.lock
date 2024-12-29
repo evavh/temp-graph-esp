@@ -666,10 +666,9 @@ dependencies = [
 [[package]]
 name = "esp-max31865"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9657513426ac40384f8d16ee6507cf0218d2545cc23e56f403e764ee376548f3"
 dependencies = [
  "bitflags 2.6.0",
+ "cc",
  "esp-idf-svc",
 ]
 
